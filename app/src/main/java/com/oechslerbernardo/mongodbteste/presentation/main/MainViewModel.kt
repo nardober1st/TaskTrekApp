@@ -1,4 +1,4 @@
-package com.oechslerbernardo.mongodbteste.presentation.home
+package com.oechslerbernardo.mongodbteste.presentation.main
 
 import android.util.Log
 import androidx.compose.runtime.MutableState
@@ -11,7 +11,6 @@ import com.oechslerbernardo.mongodbteste.data.repository.AuthRepositoryImpl
 import com.oechslerbernardo.mongodbteste.data.repository.MainRepositoryImpl
 import com.oechslerbernardo.mongodbteste.data.repository.MongoRepositoryImpl
 import com.oechslerbernardo.mongodbteste.domain.repository.Diaries
-import com.oechslerbernardo.mongodbteste.navigation.home.HomeRoutes
 import com.oechslerbernardo.mongodbteste.util.RequestState
 import com.oechslerbernardo.mongodbteste.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +23,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(
+class MainViewModel @Inject constructor(
     private val repository: AuthRepositoryImpl,
     private val mainRepositoryImpl: MainRepositoryImpl
 ) : ViewModel() {
@@ -35,11 +34,11 @@ class HomeViewModel @Inject constructor(
     private val _isDarkTheme = MutableStateFlow(false)
     val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
 
-    var state by mutableStateOf(HomeState())
+    var state by mutableStateOf(MainState())
         private set
 
-    private var _homeChannelEvent = Channel<HomeEvent>()
-    var homeChannelEvent = _homeChannelEvent.receiveAsFlow()
+    private var _mainChannelEvent = Channel<MainEvent>()
+    var mainChannelEvent = _mainChannelEvent.receiveAsFlow()
 
     init {
         observeAllDiaries()
@@ -51,37 +50,37 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: HomeEvent) {
+    fun onEvent(event: MainEvent) {
         Log.d("TAGY", "Handling event: $event")
         when (event) {
-            is HomeEvent.OnSignOutClicked -> {
+            is MainEvent.OnSignOutClicked -> {
                 viewModelScope.launch {
-                    _homeChannelEvent.send(HomeEvent.OnSignOutClicked)
+                    _mainChannelEvent.send(MainEvent.OnSignOutClicked)
                     logout()
                 }
             }
 
-            is HomeEvent.OnDialogOpen -> {
+            is MainEvent.OnDialogOpen -> {
                 state = state.copy(isDialogOpen = true)
             }
 
-            is HomeEvent.OnDialogDismiss -> {
+            is MainEvent.OnDialogDismiss -> {
                 state = state.copy(isDialogOpen = false)
             }
 
-            is HomeEvent.OnDiaryClicked -> {
+            is MainEvent.OnDiaryClicked -> {
                 viewModelScope.launch {
-                    _homeChannelEvent.send(HomeEvent.OnDiaryClicked(event.diaryId))
+                    _mainChannelEvent.send(MainEvent.OnDiaryClicked(event.diaryId))
                 }
             }
 
-            is HomeEvent.OnAddDiaryClicked -> {
+            is MainEvent.OnAddDiaryClicked -> {
                 viewModelScope.launch {
-                    _homeChannelEvent.send(HomeEvent.OnAddDiaryClicked)
+                    _mainChannelEvent.send(MainEvent.OnAddDiaryClicked)
                 }
             }
 
-            is HomeEvent.ToggleThemeSwitch -> {
+            is MainEvent.ToggleThemeSwitch -> {
                 Log.d("ThemeSwitch", "Received ToggleThemeSwitch event")
                 toggleTheme(event.isDarkTheme)
             }

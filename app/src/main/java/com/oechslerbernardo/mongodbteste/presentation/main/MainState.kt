@@ -1,10 +1,9 @@
-package com.oechslerbernardo.mongodbteste.presentation.home
+package com.oechslerbernardo.mongodbteste.presentation.main
 
 import com.oechslerbernardo.mongodbteste.data.Diary
-import com.oechslerbernardo.mongodbteste.domain.repository.Diaries
 import java.time.LocalDate
 
-data class HomeState(
+data class MainState(
     val isError: Boolean = false,
     val errorMessage: String? = null,
     var isLoading: Boolean = false,

@@ -1,7 +1,6 @@
 package com.oechslerbernardo.mongodbteste.presentation.home
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -11,118 +10,72 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.oechslerbernardo.mongodbteste.domain.repository.Diaries
-import com.oechslerbernardo.mongodbteste.presentation.components.DisplayAlertDialog
-import com.oechslerbernardo.mongodbteste.presentation.home.components.HomeTopBar
-import com.oechslerbernardo.mongodbteste.presentation.home.components.NavigationDrawer
+import com.oechslerbernardo.mongodbteste.presentation.main.MainEvent
+import com.oechslerbernardo.mongodbteste.presentation.main.MainState
 import com.oechslerbernardo.mongodbteste.util.RequestState
-import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeScreen(
-    state: HomeState,
     diaries: Diaries,
-    drawerState: DrawerState,
-    onEvent: (HomeEvent) -> Unit,
-    isDarkTheme: Boolean
+    onEvent: (MainEvent) -> Unit,
 ) {
-
-    Log.d("TAGY", "Composing HomeScreen with diaries state: $diaries")
-
     var padding by remember { mutableStateOf(PaddingValues()) }
-    val scope = rememberCoroutineScope()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                modifier = Modifier.padding(end = padding.calculateEndPadding(LayoutDirection.Ltr)),
+                onClick = { onEvent(MainEvent.OnAddDiaryClicked) }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Create, contentDescription = "New Diary Icon"
+                )
+            }
+        },
+    ) { paddingValues ->
+//            val isDarkTheme by viewModel.isDarkTheme.collectAsState()
 
-    NavigationDrawer(drawerState = drawerState, onEvent = onEvent, isDarkTheme = isDarkTheme) {
-        Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            topBar = {
-                HomeTopBar(
-                    scrollBehavior = scrollBehavior, onMenuClicked = {
-                        scope.launch {
-                            drawerState.open()
-                        }
-                    },
+        padding = paddingValues
+        when (diaries) {
+            is RequestState.Success -> {
+                HomeContent(
+                    paddingValues = padding,
+                    diaryNotes = diaries.data,
                     onEvent = onEvent
                 )
-            },
-            floatingActionButton = {
-                FloatingActionButton(
-                    modifier = Modifier.padding(end = padding.calculateEndPadding(LayoutDirection.Ltr)),
-                    onClick = { onEvent(HomeEvent.OnAddDiaryClicked) }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Create, contentDescription = "New Diary Icon"
-                    )
-                }
-            },
-            content = {
-                padding = it
-                when (diaries) {
-                    is RequestState.Success -> {
-                        HomeContent(
-                            paddingValues = it,
-                            diaryNotes = diaries.data,
-                            onEvent = onEvent
-                        )
-                    }
+            }
 
-                    is RequestState.Error -> {
-                        EmptyPage(
-                            title = "Error", subtitle = "${diaries.error}"
-                        )
-                    }
-
-                    is RequestState.Loading -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-
-                    else -> {}
-                }
-
-                DisplayAlertDialog(
-                    title = "Sign Out",
-                    message = "Are you sure you want to sign out?",
-                    dialogOpened = state.isDialogOpen,
-                    onDialogClosed = { onEvent(HomeEvent.OnDialogDismiss) },
-                    onYesClicked = { onEvent(HomeEvent.OnSignOutClicked) }
+            is RequestState.Error -> {
+                EmptyPage(
+                    title = "Error", subtitle = "${diaries.error}"
                 )
+            }
 
-                when {
-                    state.isLoading -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
+            is RequestState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
             }
-        )
+
+            else -> {}
+        }
     }
 }

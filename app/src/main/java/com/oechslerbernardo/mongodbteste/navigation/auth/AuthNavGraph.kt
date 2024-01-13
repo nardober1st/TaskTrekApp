@@ -35,7 +35,7 @@ fun NavGraphBuilder.authNavGraph(
                     when (event) {
                         is LoginEvent.LoginClick -> {
                             navController.popBackStack()
-                            navController.navigate(Routes.HomeGraphRoute.route)
+                            navController.navigate(Routes.MainGraphRoute.route)
                         }
 
                         is LoginEvent.SignUpClick -> {

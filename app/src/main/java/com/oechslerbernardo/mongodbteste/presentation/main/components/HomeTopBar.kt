@@ -1,4 +1,4 @@
-package com.oechslerbernardo.mongodbteste.presentation.home.components
+package com.oechslerbernardo.mongodbteste.presentation.main.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -10,14 +10,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import com.oechslerbernardo.mongodbteste.presentation.home.HomeEvent
+import com.oechslerbernardo.mongodbteste.presentation.main.MainEvent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar(
     scrollBehavior: TopAppBarScrollBehavior,
     onMenuClicked: () -> Unit,
-    onEvent: (HomeEvent) -> Unit
+    onEvent: (MainEvent) -> Unit
 ) {
     TopAppBar(
         scrollBehavior = scrollBehavior,

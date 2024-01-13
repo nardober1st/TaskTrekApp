@@ -1,7 +1,10 @@
 package com.oechslerbernardo.mongodbteste.presentation.main
 
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -12,7 +15,11 @@ import androidx.compose.material3.DrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,26 +31,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.oechslerbernardo.mongodbteste.domain.repository.Diaries
+import com.oechslerbernardo.mongodbteste.navigation.main.MainBottomBarRoutes
+import com.oechslerbernardo.mongodbteste.navigation.main.MainNavGraph
 import com.oechslerbernardo.mongodbteste.presentation.components.DisplayAlertDialog
-import com.oechslerbernardo.mongodbteste.presentation.home.EmptyPage
-import com.oechslerbernardo.mongodbteste.presentation.home.HomeContent
-import com.oechslerbernardo.mongodbteste.presentation.home.HomeEvent
-import com.oechslerbernardo.mongodbteste.presentation.home.HomeState
-import com.oechslerbernardo.mongodbteste.presentation.home.components.HomeTopBar
-import com.oechslerbernardo.mongodbteste.presentation.home.components.NavigationDrawer
+import com.oechslerbernardo.mongodbteste.presentation.main.components.HomeTopBar
+import com.oechslerbernardo.mongodbteste.presentation.main.components.NavigationDrawer
 import com.oechslerbernardo.mongodbteste.util.RequestState
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainScreen(
-    state: HomeState,
+    state: MainState,
     diaries: Diaries,
     drawerState: DrawerState,
-    onEvent: (HomeEvent) -> Unit,
-    isDarkTheme: Boolean
+    onEvent: (MainEvent) -> Unit,
+    isDarkTheme: Boolean,
+    navController: NavHostController = rememberNavController(),
 ) {
+
+    Log.d("TAGY", "Composing HomeScreen with diaries state: $diaries")
 
     var padding by remember { mutableStateOf(PaddingValues()) }
     val scope = rememberCoroutineScope()
@@ -62,34 +77,26 @@ fun MainScreen(
                     onEvent = onEvent
                 )
             },
-            floatingActionButton = {
-                FloatingActionButton(
-                    modifier = Modifier.padding(end = padding.calculateEndPadding(LayoutDirection.Ltr)),
-                    onClick = { onEvent(HomeEvent.OnAddDiaryClicked) }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Create, contentDescription = "New Diary Icon"
-                    )
-                }
+            bottomBar = {
+                BottomBar(navController = navController)
             },
             content = {
-                padding = it
-                when (diaries) {
-                    is RequestState.Success -> {
-                        HomeContent(
-                            paddingValues = it,
-                            diaryNotes = diaries.data,
-                            onEvent = onEvent
-                        )
-                    }
+                MainNavGraph(
+                    navController = navController,
+                    diaries = diaries,
+                    onEvent = onEvent
+                )
 
-                    is RequestState.Error -> {
-                        EmptyPage(
-                            title = "Error", subtitle = "${diaries.error}"
-                        )
-                    }
+                DisplayAlertDialog(
+                    title = "Sign Out",
+                    message = "Are you sure you want to sign out?",
+                    dialogOpened = state.isDialogOpen,
+                    onDialogClosed = { onEvent(MainEvent.OnDialogDismiss) },
+                    onYesClicked = { onEvent(MainEvent.OnSignOutClicked) }
+                )
 
-                    is RequestState.Loading -> {
+                when {
+                    state.isLoading -> {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize(),
@@ -98,10 +105,88 @@ fun MainScreen(
                             CircularProgressIndicator()
                         }
                     }
-
-                    else -> {}
                 }
             }
         )
     }
+}
+
+@Composable
+fun BottomBar(navController: NavHostController) {
+    val screens = listOf(
+        MainBottomBarRoutes.Home,
+        MainBottomBarRoutes.CompletedTasks
+    )
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
+    /*
+        THIS WAY WE CAN HIDE THE BOTTOM BAR,
+        IF OUR CURRENT DESTINATION IS NOT ONE
+        OF THE BOTTOM BAR DESTINATION
+        EX: HOME, MENU, SETTINGS
+    */
+
+//    val bottomBarDestination = screens.any { it.route == currentDestination?.route }
+//    if (bottomBarDestination) {
+//        NavigationBar(
+//            containerColor = Blue02
+//        ) {
+//            screens.forEach { screen ->
+//                AddItem(
+//                    screen = screen,
+//                    currentDestination = currentDestination,
+//                    navController = navController
+//                )
+//            }
+//        }
+//    }
+
+    NavigationBar() {
+        screens.forEach { screen ->
+            AddItem(
+                screen = screen,
+                currentDestination = currentDestination,
+                navController = navController
+            )
+        }
+    }
+}
+
+@Composable
+fun RowScope.AddItem(
+    screen: MainBottomBarRoutes,
+    currentDestination: NavDestination?,
+    navController: NavHostController
+) {
+
+    val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+
+    val icon = if (isSelected) {
+        screen.selectedIcon
+    } else {
+        screen.icon
+    }
+
+    NavigationBarItem(
+        label = {
+            Text(text = screen.title)
+        },
+        icon = {
+            Icon(
+                imageVector = icon,
+                contentDescription = "Navigation Icon"
+            )
+        },
+        selected = isSelected,
+        onClick = {
+            navController.navigate(screen.route) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    )
 }

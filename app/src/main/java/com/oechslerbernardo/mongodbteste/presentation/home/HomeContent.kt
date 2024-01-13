@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -24,10 +22,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.oechslerbernardo.mongodbteste.data.Diary
 import com.oechslerbernardo.mongodbteste.presentation.components.DiaryItem
+import com.oechslerbernardo.mongodbteste.presentation.main.MainEvent
 import java.time.LocalDate
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -35,7 +33,7 @@ import java.time.LocalDate
 fun HomeContent(
     paddingValues: PaddingValues,
     diaryNotes: Map<LocalDate, List<Diary>>,
-    onEvent: (HomeEvent) -> Unit
+    onEvent: (MainEvent) -> Unit
 ) {
 
     Log.d("TAGY", "Displaying HomeContent with diaryNotes: $diaryNotes")
@@ -59,7 +57,7 @@ fun HomeContent(
                 ) { diary ->
                     DiaryItem(diary = diary, onClick = {
                         Log.d("TAGY", "Navigating to Write Screen with diaryId: $it")
-                        onEvent(HomeEvent.OnDiaryClicked(it))
+                        onEvent(MainEvent.OnDiaryClicked(it))
                     })
                 }
             }

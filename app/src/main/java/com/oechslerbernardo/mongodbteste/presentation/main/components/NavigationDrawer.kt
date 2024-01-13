@@ -1,4 +1,4 @@
-package com.oechslerbernardo.mongodbteste.presentation.home.components
+package com.oechslerbernardo.mongodbteste.presentation.main.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
@@ -23,13 +23,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.oechslerbernardo.mongodbteste.R
-import com.oechslerbernardo.mongodbteste.presentation.home.HomeEvent
+import com.oechslerbernardo.mongodbteste.presentation.main.MainEvent
 
 @Composable
 fun NavigationDrawer(
     drawerState: DrawerState,
     isDarkTheme: Boolean,
-    onEvent: (HomeEvent) -> Unit,
+    onEvent: (MainEvent) -> Unit,
     content: @Composable () -> Unit,
 ) {
     ModalNavigationDrawer(
@@ -54,7 +54,7 @@ fun NavigationDrawer(
                                 text = "Sign Out", color = MaterialTheme.colorScheme.onSurface
                             )
                         }
-                    }, selected = false, onClick = { onEvent(HomeEvent.OnDialogOpen) }
+                    }, selected = false, onClick = { onEvent(MainEvent.OnDialogOpen) }
                 )
                 NavigationDrawerItem(
                     label = {
@@ -75,7 +75,7 @@ fun NavigationDrawer(
                 NavigationDrawerItem(
                     label = {
                         ThemeSwitch(isDarkTheme = isDarkTheme, onToggleTheme = { isChecked ->
-                            onEvent(HomeEvent.ToggleThemeSwitch(isChecked))
+                            onEvent(MainEvent.ToggleThemeSwitch(isChecked))
                         })
                     }, selected = false, onClick = { }
                 )

@@ -1,4 +1,4 @@
-package com.oechslerbernardo.mongodbteste.presentation.home.components
+package com.oechslerbernardo.mongodbteste.presentation.main.components
 
 import android.util.Log
 import androidx.compose.foundation.layout.Row
